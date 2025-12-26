@@ -1,14 +1,88 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import Flask, render_template, request, redirect, url_for
+import json
 import os
+import paramiko
+from flask import send_file
 import tempfile
+from flask import request, redirect, url_for
+import os
+from scp import SCPClient
+from datetime import datetime
 
-from services.server_service import load_servers, save_servers
-from services.ssh_service import ssh_execute, get_sftp, scp_backup
-from services.log_service import write_log, load_logs
-from services.bookmark_service import load_bookmarks, add_bookmark, save_bookmarks
 
 app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
+DATA_FILE = os.path.join(DATA_DIR, "servers.json")
+LOG_FILE = os.path.join(DATA_DIR, "activity_log.json")
+BOOKMARK_FILE = os.path.join(DATA_DIR, "bookmarks.json")
+
+
+
+def load_servers():
+    print("DATA_FILE =", DATA_FILE)
+    print("Exists =", os.path.exists(DATA_FILE))
+
+    if not os.path.exists(DATA_FILE):
+        return []
+
+    with open(DATA_FILE, "r") as f:
+        data = json.load(f)
+        print("SERVERS =", data)
+        return data
+
+
+
+def load_logs():
+    if not os.path.exists(LOG_FILE):
+        return []
+    try:
+        with open(LOG_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return []
+
+def write_log(action, server_ip, detail=""):
+    logs = load_logs()
+    logs.append({
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "server": server_ip,
+        "action": action,
+        "detail": detail
+    })
+    with open(LOG_FILE, "w") as f:
+        json.dump(logs, f, indent=4)
+
+
+
+def load_bookmarks():
+    if not os.path.exists(BOOKMARK_FILE):
+        return []
+    try:
+        with open(BOOKMARK_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return []
+
+def add_bookmark(server_ip, path):
+    bookmarks = load_bookmarks()
+    bookmarks.append({
+        "server": server_ip,
+        "path": path
+    })
+    with open(BOOKMARK_FILE, "w") as f:
+        json.dump(bookmarks, f, indent=4)
+
+def save_bookmarks(bookmarks):
+    with open(BOOKMARK_FILE, "w") as f:
+        json.dump(bookmarks, f, indent=4)
+
+
+
+def save_servers(servers):
+    with open(DATA_FILE, "w") as f:
+        json.dump(servers, f, indent=4)
 
 @app.route("/")
 def home():
@@ -34,6 +108,63 @@ def add_server():
     save_servers(servers)
 
     return redirect(url_for("servers"))
+
+
+def ssh_execute(server, command):
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        client.connect(
+            hostname=server["ip"],
+            port=int(server["port"]),
+            username=server["username"],
+            password=server["password"],
+            timeout=5
+        )
+
+        stdin, stdout, stderr = client.exec_command(command)
+        output = stdout.read().decode()
+        error = stderr.read().decode()
+
+        client.close()
+        return output, error
+
+    except Exception as e:
+        return "", str(e)
+
+def get_sftp(server):
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    client.connect(
+        hostname=server["ip"],
+        port=int(server["port"]),
+        username=server["username"],
+        password=server["password"],
+        timeout=5
+    )
+
+    sftp = client.open_sftp()
+    return client, sftp
+
+
+def scp_backup(server, remote_path, local_backup_dir="backups"):
+    os.makedirs(local_backup_dir, exist_ok=True)
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(
+        hostname=server["ip"],
+        port=int(server["port"]),
+        username=server["username"],
+        password=server["password"]
+    )
+
+    with SCPClient(ssh.get_transport()) as scp:
+        scp.get(remote_path, local_backup_dir, recursive=True)
+
+    ssh.close()
 
 
 
@@ -116,7 +247,7 @@ def download_file(server_id):
     return send_file(
         temp.name,
         as_attachment=True,
-        download_name=filename   # DÒNG QUAN TRỌNG
+        download_name=filename   # 🔥 DÒNG QUAN TRỌNG
     )
 
 
@@ -162,7 +293,7 @@ def scp_backup_route(server_id):
     servers = load_servers()
     server = servers[server_id]
 
-    # Backup từ SFTP Documents
+    # Backup từ SFTP File Manager
     remote_path = "Documents"
 
     scp_backup(server, remote_path)
