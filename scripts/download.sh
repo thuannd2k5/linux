@@ -1,0 +1,11 @@
+#!/bin/bash
+
+SERVER_IP=$1
+PORT=$2
+USER=$3
+PASSWORD=$4
+REMOTE_FILE=$5
+LOCAL_DIR=$6
+
+sshpass -p "$PASSWORD" scp -P $PORT \
+"$USER@$SERVER_IP:$REMOTE_FILE" "$LOCAL_DIR"

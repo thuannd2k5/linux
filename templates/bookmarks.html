@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Bookmarked Folders</h3>
+
+<table>
+    <tr>
+        <th>Server</th>
+        <th>Path</th>
+        <th>Action</th>
+    </tr>
+
+    {% for b in bookmarks %}
+    <tr>
+        <td>{{ b.server }}</td>
+        <td>{{ b.path }}</td>
+        <td>
+            <a href="/sftp/0?path={{ b.path }}">Open</a>
+            |
+            <a href="/bookmark-delete/{{ loop.index0 }}"
+               onclick="return confirm('Delete this bookmark?');">
+               Delete
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+<a href="/">Back</a>
+{% endblock %}

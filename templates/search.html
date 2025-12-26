@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Search File</h3>
+
+<p>
+<b>Server:</b> {{ server.ip }} <br>
+<b>Path:</b> {{ path }}
+</p>
+
+<form method="POST">
+    <input type="text" name="keyword" placeholder="Enter filename..." value="{{ keyword }}" required>
+    <button type="submit">Search</button>
+</form>
+
+<hr>
+
+{% if results %}
+<h4>Results</h4>
+<ul>
+    {% for r in results %}
+    <li>{{ r }}</li>
+    {% endfor %}
+</ul>
+{% elif keyword %}
+<p>No results found.</p>
+{% endif %}
+
+<br>
+<a href="/sftp/{{ server_id }}?path={{ path }}">Back to File Manager</a>
+{% endblock %}

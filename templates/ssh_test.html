@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>🖥️ SSH Connection Test</h3>
+
+<div class="info-box">
+    <p><b>Server:</b> {{ server.ip }}</p>
+    <p><b>User:</b> {{ server.username }}</p>
+    <p><b>Status:</b> {% if output %}<span style="color: #38a169;">✓ Connected</span>{% elif error %}<span style="color: #e53e3e;">✗ Failed</span>{% endif %}</p>
+</div>
+
+<div class="command-header">
+    $ ls
+</div>
+
+{% if output %}
+<div class="terminal-box">
+    <pre>{{ output }}</pre>
+</div>
+{% endif %}
+
+{% if error %}
+<div class="error-box">
+    <strong>❌ Error occurred:</strong>
+    <pre>{{ error }}</pre>
+</div>
+{% endif %}
+
+<a href="/servers" class="back-link">← Back to Servers</a>
+{% endblock %}

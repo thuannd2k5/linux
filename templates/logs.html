@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Activity Log</h3>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Time</th>
+        <th>Server</th>
+        <th>Action</th>
+        <th>Detail</th>
+    </tr>
+
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.time }}</td>
+        <td>{{ log.server }}</td>
+        <td>{{ log.action }}</td>
+        <td>{{ log.detail }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+<a href="/">Back</a>
+{% endblock %}

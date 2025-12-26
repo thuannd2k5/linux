@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSH Web Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>🔐 SSH / SFTP / SCP Dashboard</h2>
+            <p>Manage your servers with ease</p>
+        </header>
+
+        <div class="nav-links">
+            <a href="/">🏠 Home</a>
+            <a href="/servers">🖥️ Servers</a>
+            <a href="/logs">📋 Logs</a>
+            <a href="/bookmarks">⭐ Bookmarks</a>
+        </div>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

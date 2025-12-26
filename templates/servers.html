@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>SSH Servers</h3>
+
+<form method="POST" action="/add-server">
+    <input type="text" name="ip" placeholder="Server IP" required><br><br>
+    <input type="text" name="port" placeholder="Port (default 22)" value="22"><br><br>
+    <input type="text" name="username" placeholder="Username" required><br><br>
+    <input type="password" name="password" placeholder="Password" required><br><br>
+    <button type="submit">Add Server</button>
+</form>
+
+<hr>
+
+<h4>Server List</h4>
+<table border="1" cellpadding="5">
+    <tr>
+    <th>IP</th>
+    <th>Port</th>
+    <th>User</th>
+    <th>Action</th>
+</tr>
+
+{% for s in servers %}
+<tr>
+    <td>{{ s.ip }}</td>
+    <td>{{ s.port }}</td>
+    <td>{{ s.username }}</td>
+    <td>
+        <a href="/ssh-test/{{ loop.index0 }}">Test SSH</a> |
+        <a href="/sftp/{{ loop.index0 }}">SFTP</a> |
+        <a href="/scp-backup/{{ loop.index0 }}">Backup</a>
+    </td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+<a href="/">Back</a>
+{% endblock %}
